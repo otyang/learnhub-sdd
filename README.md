@@ -22,6 +22,24 @@ AI coding agents are fast, but left unguided they guess at business rules, add f
 
 ---
 
+## 🧠 SDD, Not Vibe Coding
+
+This is **AI-assisted, spec-driven development**, not vibe coding.
+
+**Vibe coding** means prompting an AI loosely, accepting whatever it writes if it seems to work, and iterating by feel. That works for throwaway prototypes, but the AI fills every gap in the prompt with its own assumptions, and nobody can say afterwards which behaviour was intended and which was guessed.
+
+**In this repository, the AI implements decisions that humans have already made:**
+
+- **Intent is written down first.** Each behaviour has a requirement ID, business rules and acceptance criteria in `docs/specs/`, so the agent builds what was decided rather than what it infers.
+- **Rules are fixed, not improvised.** Invariants like "unpublished tutorials return 404" and the progress-percentage formula ([ADR-003](docs/decisions/ADR-003-progress-calculation.md)) are set before any code exists. The AI cannot quietly change them.
+- **Scope is enforced.** [ADR-001](docs/decisions/ADR-001-no-user-accounts.md) rules out user accounts. Without it, an AI might add logins or JWTs because they look like good practice. Here, that counts as a defect.
+- **Ambiguity stops the work.** If a spec is unclear, the agent asks or proposes a spec change; it does not guess.
+- **Results can be verified.** Every change traces back to requirement IDs and acceptance tests in [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md), so reviewers check the work against the spec, not against a feeling that it works.
+
+The AI still does most of the typing. What changes is accountability: humans own *what* gets built and *why*, the AI owns *how*, and the spec is the contract between them.
+
+---
+
 ## 🚀 Project Overview
 
 LearnHub enables anonymous learners to:
