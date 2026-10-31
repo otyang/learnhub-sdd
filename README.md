@@ -126,3 +126,15 @@ If you are an AI assistant tasked with writing code for this repository:
 3. Follow `docs/ENGINEERING_STANDARDS.md` and `docs/ARCHITECTURE.md`.
 4. Satisfy every acceptance criterion in the spec without introducing unapproved features.
 5. If the spec is ambiguous, **ask; do not guess.**
+
+---
+
+## 👥 Contributors
+
+- [Otyang](https://github.com/otyang)
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
