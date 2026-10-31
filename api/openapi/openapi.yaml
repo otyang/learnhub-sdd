@@ -1,0 +1,334 @@
+openapi: 3.1.0
+info:
+  title: LearnHub API
+  description: OpenAPI 3.1 specification for LearnHub — an SDD tutorial platform for anonymous learners.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /tutorials:
+    get:
+      summary: List published tutorials
+      operationId: listTutorials
+      tags:
+        - Tutorials
+      responses:
+        '200':
+          description: A list of published tutorials.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TutorialSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tutorials/{slug}:
+    get:
+      summary: Get tutorial details and ordered lessons
+      operationId: getTutorialBySlug
+      tags:
+        - Tutorials
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Unique URL slug of the tutorial
+          schema:
+            type: string
+            example: introduction-to-go
+      responses:
+        '200':
+          description: Detailed tutorial information including ordered published lessons.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TutorialDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tutorials/{slug}/lessons/{lessonId}:
+    get:
+      summary: Read a specific lesson
+      operationId: getLesson
+      tags:
+        - Lessons
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detailed lesson contents with next and previous navigation metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LessonDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tutorials/{slug}/progress:
+    get:
+      summary: Get learner progress for a tutorial
+      operationId: getLearnerProgress
+      tags:
+        - Progress
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XLearnerID'
+      responses:
+        '200':
+          description: Calculated progress for the given learner and tutorial.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProgressSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tutorials/{slug}/lessons/{lessonId}/progress:
+    put:
+      summary: Set completion state for a lesson
+      operationId: setLessonProgress
+      tags:
+        - Progress
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/XLearnerID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [completed]
+              properties:
+                completed:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Updated completion status for the lesson.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LessonProgressStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    XLearnerID:
+      name: X-Learner-ID
+      in: header
+      required: true
+      description: Anonymous learner UUID generated by the client browser.
+      schema:
+        type: string
+        format: uuid
+        example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+
+  responses:
+    BadRequest:
+      description: Invalid request parameter or body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Requested resource or tutorial was not found or is unpublished.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    InternalServerError:
+      description: Unexpected internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+  schemas:
+    TutorialSummary:
+      type: object
+      required: [id, slug, title, summary, publishedAt, lessonCount]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        lessonCount:
+          type: integer
+          example: 5
+
+    TutorialDetail:
+      type: object
+      required: [id, slug, title, summary, publishedAt, lessons]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonSummary'
+
+    LessonSummary:
+      type: object
+      required: [id, title, position]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        position:
+          type: integer
+
+    LessonDetail:
+      type: object
+      required: [id, tutorialId, title, content, position, navigation]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tutorialId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        position:
+          type: integer
+        navigation:
+          type: object
+          properties:
+            previousLessonId:
+              type: string
+              format: uuid
+              nullable: true
+            nextLessonId:
+              type: string
+              format: uuid
+              nullable: true
+
+    ProgressSummary:
+      type: object
+      required: [tutorialSlug, completedPublishedLessons, totalPublishedLessons, percentage]
+      properties:
+        tutorialSlug:
+          type: string
+        completedPublishedLessons:
+          type: integer
+          example: 2
+        totalPublishedLessons:
+          type: integer
+          example: 3
+        percentage:
+          type: integer
+          example: 66
+
+    LessonProgressStatus:
+      type: object
+      required: [lessonId, completed, updatedAt]
+      properties:
+        lessonId:
+          type: string
+          format: uuid
+        completed:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: INVALID_LEARNER_ID
+            message:
+              type: string
+              example: A valid UUID is required in the X-Learner-ID header.

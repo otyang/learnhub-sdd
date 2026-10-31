@@ -1,0 +1,22 @@
+# Binaries for SDKs and apps
+*.exe
+*.exe-
+*.dll
+*.so
+*.dylib
+bin/
+cmd/all/all
+
+# Environment variables
+.env
+.env.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
