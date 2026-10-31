@@ -1,8 +1,24 @@
-# LearnHub — Spec-Driven Development (SDD) Starter Repository
+# LearnHub — AI-Driven Spec-Driven Development (SDD) Starter
 
-Welcome to the **LearnHub** starter repository! LearnHub is a simple online learning platform designed to demonstrate **Spec-Driven Development (SDD)** with AI coding agents in Go.
+**LearnHub** is a starter repository for **AI-assisted Spec-Driven Development**: humans write and approve the specifications, and **AI coding agents** (Claude Code, Codex, Copilot, Cursor and similar) implement them in Go.
 
-> ⚠️ **Note:** This repository is an SDD documentation starter. It contains baseline specifications, domain boundaries, architecture decision records (ADRs), an OpenAPI contract, and database migration designs. It does **not** contain the completed Go application code.
+LearnHub itself is a deliberately small online learning platform. The real subject is the workflow: the repository is set up so an AI agent can take a requirement ID, find its approved spec and API contract, and build exactly what is specified, with nothing invented along the way.
+
+> ⚠️ **Note:** This repository is an SDD documentation starter. It contains baseline specifications, domain boundaries, architecture decision records (ADRs), an OpenAPI contract, database migration designs, and AI agent instructions. It does **not** contain the completed Go application code. Writing that code is the AI agent's job.
+
+---
+
+## 🤖 Why AI + SDD?
+
+AI coding agents are fast, but left unguided they guess at business rules, add features nobody asked for, and drift from the API contract. This repository constrains them with specifications:
+
+| Problem with unguided AI agents | How this repo constrains them |
+| --- | --- |
+| Invents requirements or "helpful" extras | [`AGENTS.md`](AGENTS.md) forbids unapproved features; only approved specs in `docs/specs/` may be implemented |
+| Guesses on ambiguous edge cases | Agents must stop and ask, or propose a spec update, before coding |
+| Drifts from the API contract | [`api/openapi/openapi.yaml`](api/openapi/openapi.yaml) is the source of truth for every request and response |
+| Produces changes that are hard to review | Every change cites stable requirement IDs (`CAT-001`, `LES-002`, `PRG-003`), traced in [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) |
+| Makes architectural calls on its own | Decisions are fixed in ADRs under [`docs/decisions/`](docs/decisions/) |
 
 ---
 
@@ -47,20 +63,48 @@ learnhub-sdd/
 
 ---
 
-## 📖 Spec-Driven Development Workflow
+## 📖 The AI-Driven SDD Workflow
 
-In this project, **no application code is written without an approved specification**.
+In this project, **no application code is written, by a human or an AI, without an approved specification**.
 
-1. Read [`docs/WORKFLOW.md`](docs/WORKFLOW.md) to understand the full specification-first lifecycle.
-2. Review [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) to see how product requirements map to feature specifications and test cases.
-3. Consult [`AGENTS.md`](AGENTS.md) if you are an AI agent implementing feature requests.
+```text
+ Human                                   AI agent                          Human
+[ Propose → Specify → Review → Approve ] → [ Implement → Test → Trace ] → [ Verify → Merge ]
+```
+
+- **Humans own intent:** product goals, specs, acceptance criteria, ADRs, and approval.
+- **AI agents own implementation:** Go code, tests, and traceability updates that match the approved spec.
+- **Specs settle disputes:** if code and spec disagree, the code changes, unless a spec revision is approved.
+
+See [`docs/WORKFLOW.md`](docs/WORKFLOW.md) for the full lifecycle, Definition of Ready and Definition of Done.
 
 ---
 
-## 🤖 Guidance for AI Coding Agents
+## 🚦 Getting Started with an AI Agent
+
+1. Pick a requirement ID from [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md).
+2. Point your AI coding agent at this repository. It should read [`AGENTS.md`](AGENTS.md) first; many agents pick it up automatically.
+3. Give it the reusable prompt from [`docs/WORKFLOW.md`](docs/WORKFLOW.md#5-reusable-ai-agent-prompt-template):
+
+   ```text
+   You are working on the LearnHub repository following Spec-Driven Development (SDD).
+   Task: Implement requirement PRG-001.
+   Step 1: Read `AGENTS.md` and `docs/specs/progress/lesson-progress.md`.
+   Step 2: Check `api/openapi/openapi.yaml` for expected request/response contracts.
+   Step 3: Implement domain logic, handlers, and persistence layer in Go.
+   Step 4: Write unit and integration tests verifying all acceptance criteria (AC-[ID]).
+   Step 5: Report completion with test evidence. Do not add unapproved features.
+   ```
+
+4. Review the agent's change against the spec's acceptance criteria and the traceability matrix before merging.
+
+---
+
+## 🧭 Rules for AI Coding Agents
 
 If you are an AI assistant tasked with writing code for this repository:
-1. Read **`AGENTS.md`** first.
+1. Read **[`AGENTS.md`](AGENTS.md)** first. Its rules override your defaults.
 2. Verify that the task maps to an approved feature specification in `docs/specs/`.
 3. Follow `docs/ENGINEERING_STANDARDS.md` and `docs/ARCHITECTURE.md`.
-4. Ensure code implementation satisfies all acceptance criteria in the spec without introducing unapproved features.
+4. Satisfy every acceptance criterion in the spec without introducing unapproved features.
+5. If the spec is ambiguous, **ask; do not guess.**
